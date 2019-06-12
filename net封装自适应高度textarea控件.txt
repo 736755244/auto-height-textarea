@@ -1,0 +1,139 @@
+  ko.components.register("pmt-auto-textarea", {
+        viewModel: {
+            createViewModel: function (params, componentInfo) {
+                formElement(componentInfo);
+                var vm = new (function () {
+                    var self = this;
+                    window.comViewModel.apply(self);
+                    self.model = params.model;
+                    self.disable = params.disable || false;
+                    self.required = params.required || false;
+                    self.placeholder = params.placeholder;
+                    self.idname = params.name;
+
+                    var autoTextarea = function (extra, maxHeight) {
+                        extra = extra || 0;
+                        var elem = $('body').find('#' + self.idname).children().children()[0];
+                        var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,
+                            isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),
+                            addEvent = function (type, callback) {
+                                elem.addEventListener ?
+                                        elem.addEventListener(type, callback, false) :
+                                        elem.attachEvent('on' + type, callback);
+                            },
+                            getStyle = elem.currentStyle ? function (name) {
+                                var val = elem.currentStyle[name];
+
+                                if (name === 'height' && val.search(/px/i) !== 1) {
+                                    var rect = elem.getBoundingClientRect();
+                                    return rect.bottom - rect.top - parseFloat(getStyle('paddingTop')) - parseFloat(getStyle('paddingBottom')) + 'px';
+                                };
+
+                                return val;
+                            } : function (name) {
+                                return getComputedStyle(elem, null)[name];
+                            },
+                            minHeight = parseFloat(getStyle('height'));
+                            elem.style.resize = 'none';
+
+                        var change = function () {
+                            var scrollTop, height, padding = 0, style = elem.style;
+                            elem.value = self.model()||'';
+                            if (elem._length === elem.value.length) return;
+                            elem._length = elem.value.length;
+
+                            if (!isFirefox && !isOpera) {
+                                padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));
+                            };
+                            scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+
+                            elem.style.height = minHeight + 'px';
+                            if (elem.scrollHeight > minHeight) {
+                                if (maxHeight && elem.scrollHeight > maxHeight) {
+                                    height = maxHeight - padding;
+                                    style.overflowY = 'auto';
+                                } else {
+                                    console.log(padding);
+                                    height = elem.scrollHeight - padding+10;
+                                    style.overflowY = 'hidden';
+                                };
+                                style.height = height + extra + 'px';
+                                scrollTop += parseInt(style.height) - elem.currHeight;
+                                document.body.scrollTop = scrollTop;
+                                document.documentElement.scrollTop = scrollTop;
+                                elem.currHeight = parseInt(style.height);
+                            };
+                        };
+                        change();
+                    };
+                    autoTextarea();
+
+                    $dom = $('body').find('#' + self.idname).children().children();
+                    $dom.on('keyup', function (e) {
+                        var elem = e.target,maxHeight, extra = 0;
+                        var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,
+                        isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),
+                                addEvent = function (type, callback) {
+                                    elem.addEventListener ?
+                                            elem.addEventListener(type, callback, false) :
+                                            elem.attachEvent('on' + type, callback);
+                                },
+                                getStyle = elem.currentStyle ? function (name) {
+                                    var val = elem.currentStyle[name];
+
+                                    if (name === 'height' && val.search(/px/i) !== 1) {
+                                        var rect = elem.getBoundingClientRect();
+                                        return rect.bottom - rect.top -
+                                                parseFloat(getStyle('paddingTop')) -
+                                                parseFloat(getStyle('paddingBottom')) + 'px';
+                                    };
+
+                                    return val;
+                                } : function (name) {
+                                    return getComputedStyle(elem, null)[name];
+                                },
+                                minHeight = parseFloat(getStyle('height'));
+
+                        elem.style.resize = 'none';
+
+                        var change = function () {
+                            var scrollTop, height, padding = 0, style = elem.style;
+                            if (elem._length === elem.value.length) return;
+                            elem._length = elem.value.length;
+
+                            if (!isFirefox && !isOpera) {
+                                padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));
+                            };
+                            scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+
+                            elem.style.height = minHeight + 'px';
+                            if (elem.scrollHeight > minHeight) {
+                                if (maxHeight && elem.scrollHeight > maxHeight) {
+                                    height = maxHeight - padding;
+                                    style.overflowY = 'auto';
+                                } else {
+                                    height = elem.scrollHeight - padding;
+                                    style.overflowY = 'hidden';
+                                };
+                                style.height = height + extra + 'px';
+                                scrollTop += parseInt(style.height) - elem.currHeight;
+                                //document.body.scrollTop = scrollTop;
+                                //document.documentElement.scrollTop = scrollTop;
+                                elem.currHeight = parseInt(style.height);
+                            };
+                        };
+
+                        addEvent('propertychange', change);
+                        addEvent('input', change);
+                        addEvent('focus', change);
+                    })
+
+                })();
+                return vm;
+            }
+        },
+        template: '<div class="input-theme-a">\
+            <textarea  class="form-control input-so-sm" data-bind="value:model,disable:disable,attr:{placeholder:placeholder,id:idname}"></textarea>\
+        </div>\
+        <span class="text-red" data-bind="if:required">*</span>'
+    });
